@@ -1,0 +1,256 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление сеансами - WellnessWave</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .navbar {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #5a6268;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+
+        .form-select, .btn {
+            border-radius: 20px;
+        }
+
+        .btn-primary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+            .btn-primary:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+            }
+
+        .btn-secondary {
+            background-color: #adb5bd;
+            border-color: #adb5bd;
+        }
+
+            .btn-secondary:hover {
+                background-color: #868e96;
+                border-color: #868e96;
+            }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+            .btn-danger:hover {
+                background-color: #c82333;
+                border-color: #c82333;
+            }
+
+        .table {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+            .table th {
+                background-color: #6c757d;
+                color: #fff;
+                text-align: center;
+            }
+
+            .table td {
+                text-align: center;
+                vertical-align: middle;
+            }
+
+        .btn-disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            pointer-events: none; /* Отключает кликабельность */
+        }
+
+        .table th a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+            .table th a:hover {
+                text-decoration: underline;
+            }
+
+        @media (max-width: 767.98px) {
+            .table-responsive {
+                border: 0;
+            }
+
+            .table thead {
+                display: none;
+            }
+
+            .table tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .table td {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.75rem;
+                text-align: left;
+                border: 0;
+                border-bottom: 1px solid #ddd;
+            }
+
+                .table td:last-child {
+                    border-bottom: 0;
+                }
+
+                .table td::before {
+                    content: attr(data-label);
+                    font-weight: bold;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    color: #6c757d;
+                }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">WellnessWave</a>
+            {% include 'navbar.html' %}
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <h1 class="text-center">Управление сеансами</h1>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <form method="get" action="{{ url_for('manage_sessions') }}">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="master_id" class="form-label">Мастер</label>
+                            <select class="form-select" id="master_id" name="master_id">
+                                <option value="">Все</option>
+                                {% for master in masters %}
+                                <option value="{{ master.master_id }}" {% if selected_master_id==master.master_id %}selected{% endif %}>
+                                    {{ master.name_master }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <button type="submit" class="btn btn-primary mt-4">Фильтровать</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Клиент</th>
+                        <th>
+                            <a href="{{ url_for('manage_sessions', sort_by='name_master', order='asc' if sort_by != 'name_master' or order == 'desc' else 'desc', master_id=selected_master_id) }}">
+                                Мастер
+                                {% if sort_by == 'name_master' %}
+                                <i class="fas fa-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ url_for('manage_sessions', sort_by='address', order='asc' if sort_by != 'address' or order == 'desc' else 'desc', master_id=selected_master_id) }}">
+                                Адрес
+                                {% if sort_by == 'address' %}
+                                <i class="fas fa-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>Тип процедуры</th>
+                        <th>
+                            <a href="{{ url_for('manage_sessions', sort_by='date', order='asc' if sort_by != 'date' or order == 'desc' else 'desc', master_id=selected_master_id) }}">
+                                Дата
+                                {% if sort_by == 'date' %}
+                                <i class="fas fa-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>Статус оплаты</th>
+                        <th>Детали</th>
+                        {% if role == 'admin' %}
+                        <th>ID чата</th>
+                        <th>Отправлено</th>
+                        <th>Действия</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in sessions %}
+                    <tr>
+                        <td>{{ session.id }}</td>
+                        <td>{{ session.name_client }}</td>
+                        <td>{{ session.name_master }}</td>
+                        <td>{{ session.address }}</td>
+                        <td>{{ session.procedure_type }}</td>
+                        <td>{{ session.date }}</td>
+                        <td>{{ session.payment_status }}</td>
+                        <td>{{ session.details }}</td>
+                        {% if role == 'admin' %}
+                        <td id="chatId_{{ session.id }}">{{ session.telegram_chat_id }}</td>
+                        <td>{{ session.notification_status }}</td>
+                        <td>
+                            <a href="{{ url_for('send_notification', session_id=session.id) }}" class="btn btn-primary btn-sm" id="notifyButton_{{ session.id }}">Отправить уведомление</a>
+                            <a href="{{ url_for('edit_session', session_id=session.id) }}" class="btn btn-primary btn-sm">Редактировать</a>
+                            <form action="{{ url_for('delete_session', session_id=session.id) }}" method="post" style="display:inline;">
+                                <input type="hidden" name="_method" value="delete">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Вы уверены, что хотите удалить этот сеанс?');">Удалить</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if role == 'admin' %}
+        <a href="{{ url_for('add_session') }}" class="btn btn-primary mt-3">Добавить сеанс</a>
+        {% endif %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[id^="notifyButton_"]').forEach(button => {
+                const sessionId = button.id.split('_')[1];
+                const chatIdElement = document.querySelector(`#chatId_${sessionId}`);
+                const chatId = chatIdElement ? chatIdElement.textContent.trim() : '';
+
+                // Проверяем, является ли ID чата допустимым
+                const isChatIdValid = chatId && /^\d+$/.test(chatId); // Проверяем, что ID не содержит букв и не пустой
+
+                if (!isChatIdValid) {
+                    button.classList.add('btn-disabled');
+                    button.disabled = true;  // Делаем кнопку неактивной
+                    button.removeAttribute('href');  // Убираем ссылку, чтобы кнопка не была кликабельной
+                }
+            });
+        });
+    </script>
+</body>
+</html>

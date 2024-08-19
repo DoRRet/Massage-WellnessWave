@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отправка уведомления - WellnessWave</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .template-preview-container {
+            display: none;
+        }
+
+        .btn-disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Отправка уведомления</h1>
+        <form method="POST" id="notificationForm">
+            <div class="mb-3">
+                <label for="notification_option" class="form-label">Выберите опцию уведомления</label>
+                <select class="form-select" id="notification_option" name="notification_option" required>
+                    <option value="send_now">Отправить сейчас</option>
+                    <option value="send_day_before">Отправить за день до сеанса</option>
+                    <option value="send_both">Отправить сейчас и за день до сеанса</option>
+                    <option value="custom">Свое сообщение</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="template_message" class="form-label">Сообщение</label>
+                <textarea class="form-control" id="template_message" name="template_message" rows="4">{{ template_message }}</textarea>
+            </div>
+            <button type="submit" id="sendButton" class="btn btn-primary">Отправить уведомление</button>
+        </form>
+        <div class="mt-5 template-preview-container" id="templatePreviewContainer">
+            <h2>Предпросмотр уведомления</h2>
+            <div id="templatePreview" class="alert alert-info"></div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script>
+        const clientName = "{{ client.name_client }}";
+        const procedureType = "{{ session.procedure_type }}";
+        const masterName = "{{ session.name_master }}";
+        const sessionDate = "{{ session.date }}";
+        const address = "{{ session.address }}";
+        const telegramChatId = "{{ session.telegram_chat_id }}";
+
+        const templatePreviewContainer = document.getElementById('templatePreviewContainer');
+        const templatePreview = document.getElementById('templatePreview');
+        const templateMessageElement = document.getElementById('template_message');
+        const notificationOptionElement = document.getElementById('notification_option');
+        const sendButton = document.getElementById('sendButton');
+
+        function updateTemplatePreview() {
+            const notificationOption = notificationOptionElement.value;
+            let previewText = templateMessageElement.value;
+
+            if (notificationOption !== 'custom') {
+                previewText = previewText
+                    .replace(/{client_name}/g, clientName)
+                    .replace(/{procedure_type}/g, procedureType)
+                    .replace(/{master_name}/g, masterName)
+                    .replace(/{session_date}/g, sessionDate)
+                    .replace(/{address}/g, address);
+            }
+
+            templatePreview.textContent = previewText;
+            templatePreviewContainer.style.display = 'block';
+        }
+
+        function updateButtonState() {
+            // Проверяем, является ли ID чата допустимым
+            const isChatIdValid = telegramChatId && !/\D/.test(telegramChatId); // Проверяем, что ID не содержит букв
+            sendButton.disabled = !isChatIdValid;
+            sendButton.classList.toggle('btn-disabled', !isChatIdValid);
+        }
+
+        function saveTemplateToLocalStorage() {
+            if (notificationOptionElement.value !== 'custom') {
+                const templateMessage = templateMessageElement.value;
+                localStorage.setItem('template_message', templateMessage);
+            }
+        }
+
+        notificationOptionElement.addEventListener('change', function() {
+            updateTemplatePreview();
+        });
+
+        templateMessageElement.addEventListener('input', function() {
+            updateTemplatePreview();
+            saveTemplateToLocalStorage();
+        });
+
+        function loadTemplateFromLocalStorage() {
+            const savedTemplate = localStorage.getItem('template_message');
+            if (savedTemplate) {
+                templateMessageElement.value = savedTemplate;
+            }
+            updateTemplatePreview();
+        }
+
+        loadTemplateFromLocalStorage();
+        updateButtonState();
+    </script>
+</body>
+</html>

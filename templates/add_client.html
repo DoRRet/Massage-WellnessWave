@@ -1,0 +1,37 @@
+﻿<!-- add_client.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить клиента - WellnessWave</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Добавить клиента</h1>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="name_client" class="form-label">Имя клиента</label>
+                <input type="text" class="form-control" id="name_client" name="name_client" required>
+            </div>
+            <div class="mb-3">
+                <label for="birthdate" class="form-label">Дата рождения</label>
+                <input type="date" class="form-control" id="birthdate" name="birthdate">
+            </div>
+            <div class="mb-3">
+                <label for="phone_number" class="form-label">Телефон</label>
+                <input type="text" class="form-control" id="phone_number" name="phone_number">
+            </div>
+            <div class="mb-3">
+                <label for="notes" class="form-label">Заметки</label>
+                <textarea class="form-control" id="notes" name="notes"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Добавить</button>
+            <a href="{{ url_for('manage_clients') }}" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

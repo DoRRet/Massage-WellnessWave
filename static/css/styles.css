@@ -1,0 +1,40 @@
+body {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+h1.display-4 {
+    color: #007bff;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.card-title {
+    font-weight: 600;
+}
+
+.list-group-item {
+    padding: 15px 20px;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.list-group-item strong {
+    font-size: 1.1rem;
+    display: block;
+}
+
+.list-group-item small {
+    color: #666;
+}

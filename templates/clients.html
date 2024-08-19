@@ -1,0 +1,169 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление клиентами - WellnessWave</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .navbar {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #5a6268;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+
+        .table {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+            .table th {
+                background-color: #6c757d;
+                color: #fff;
+                text-align: center;
+            }
+
+            .table td {
+                text-align: center;
+                vertical-align: middle;
+            }
+
+        .btn {
+            border-radius: 20px;
+        }
+
+        .btn-primary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+            .btn-primary:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+            }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #adb5bd;
+        }
+
+            .btn-secondary:hover {
+                background-color: #868e96;
+                border-color: #868e96;
+            }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+            .btn-danger:hover {
+                background-color: #c82333;
+                border-color: #c82333;
+            }
+
+        .container {
+            max-width: 960px;
+        }
+
+        @media (max-width: 767.98px) {
+            .table-responsive {
+                border: 0;
+            }
+
+            .table thead {
+                display: none;
+            }
+
+            .table tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .table td {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.75rem;
+                text-align: left;
+                border: 0;
+                border-bottom: 1px solid #ddd;
+            }
+
+                .table td:last-child {
+                    border-bottom: 0;
+                }
+
+                .table td::before {
+                    content: attr(data-label);
+                    font-weight: bold;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    color: #6c757d;
+                }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">WellnessWave</a>
+            {% include 'navbar.html' %}
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <h1 class="text-center display-4">Управление клиентами</h1>
+        <div class="row">
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Имя клиента</th>
+                                <th>Дата рождения</th>
+                                <th>Телефон</th>
+                                <th>Заметки</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for client in clients %}
+                            <tr>
+                                <td data-label="ID">{{ client.id }}</td>
+                                <td data-label="Имя клиента">{{ client.name_client }}</td>
+                                <td data-label="Дата рождения">{{ client.birthdate }}</td>
+                                <td data-label="Телефон">{{ client.phone_number }}</td>
+                                <td data-label="Заметки">{{ client.notes }}</td>
+                                <td data-label="Действия">
+                                    <a href="{{ url_for('edit_client', client_id=client.id) }}" class="btn btn-secondary btn-sm">Редактировать</a>
+                                    <a href="{{ url_for('delete_client', client_id=client.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Вы уверены, что хотите удалить этого клиента?');">Удалить</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-end mt-3">
+                    <a href="{{ url_for('add_client') }}" class="btn btn-primary">Добавить клиента</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная - WellnessWave</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">WellnessWave</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            {% include 'navbar.html' %}
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h1 class="display-4">Добро пожаловать в WellnessWave</h1>
+                {% if user_role == 'admin' %}
+                <p class="lead">Управляйте клиентами, сеансами и пользователями легко и удобно.</p>
+                <hr class="my-4">
+                <p>Используйте панель управления для полного контроля над вашим бизнесом.</p>
+                <a class="btn btn-primary btn-lg" href="/dashboard" role="button">Перейти к панели управления</a>
+                {% endif %}
+                <!-- Кнопка для входа -->
+                {% if not current_user %}
+                <div class="mt-5">
+                    <a class="btn btn-primary btn-lg" href="/login" role="button">Войти</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Блок для отображения дней рождений -->
+        {% if user_role == 'admin' %}
+        <div class="row mt-5">
+            <div class="col-lg-12">
+                <h3 class="mb-4">Дни рождения</h3>
+                <div class="row">
+                    {% if upcoming_birthdays.today %}
+                    <div class="col-md-4">
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <i class="fas fa-birthday-cake"></i> Сегодня
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                {% for client in upcoming_birthdays.today %}
+                                <li class="list-group-item">
+                                    <strong>{{ client.name_client }}</strong><br>
+                                    <small>{{ client.birthdate.strftime('%d.%m.%Y') }}</small>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if upcoming_birthdays.tomorrow %}
+                    <div class="col-md-4">
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <i class="fas fa-birthday-cake"></i> Завтра
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                {% for client in upcoming_birthdays.tomorrow %}
+                                <li class="list-group-item">
+                                    <strong>{{ client.name_client }}</strong><br>
+                                    <small>{{ client.birthdate.strftime('%d.%m.%Y') }}</small>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if upcoming_birthdays.upcoming %}
+                    <div class="col-md-4">
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-warning text-white">
+                                <i class="fas fa-birthday-cake"></i> Ближайшие дни
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                {% for client in upcoming_birthdays.upcoming %}
+                                <li class="list-group-item">
+                                    <strong>{{ client.name_client }}</strong><br>
+                                    <small>{{ client.birthdate.strftime('%d.%m.%Y') }}</small>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row mt-5">
+            <div class="col-md-4">
+                {% if user_role == 'admin' %}
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-3x mb-3"></i>
+                        <h5 class="card-title">Управление клиентами</h5>
+                        <p class="card-text">Добавляйте, редактируйте и удаляйте клиентов.</p>
+                        <a href="/clients" class="btn btn-outline-primary">Перейти</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                {% if current_user %}
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-alt fa-3x mb-3"></i>
+                        <h5 class="card-title">Управление сеансами</h5>
+                        <p class="card-text">Создавайте и управляйте сеансами для клиентов.</p>
+                        <a href="/sessions" class="btn btn-outline-primary">Перейти</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                {% if user_role == 'admin' %}
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-cogs fa-3x mb-3"></i>
+                        <h5 class="card-title">Настройки</h5>
+                        <p class="card-text">Управляйте пользователями(мастерами) и их правами.</p>
+                        <a href="/users" class="btn btn-outline-primary">Перейти</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

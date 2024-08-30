@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История сеансов - WellnessWave</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .navbar {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #5a6268;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+
+        .form-select, .btn {
+            border-radius: 20px;
+        }
+
+        .btn-primary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+            .btn-primary:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+            }
+
+        .btn-secondary {
+            background-color: #adb5bd;
+            border-color: #adb5bd;
+        }
+
+            .btn-secondary:hover {
+                background-color: #868e96;
+                border-color: #868e96;
+            }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+            .btn-danger:hover {
+                background-color: #c82333;
+                border-color: #c82333;
+            }
+
+        .table {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+            .table th {
+                background-color: #6c757d;
+                color: #fff;
+                text-align: center;
+            }
+
+            .table td {
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            .table th a {
+                color: #fff;
+                text-decoration: none;
+            }
+
+                .table th a:hover {
+                    text-decoration: underline;
+                }
+
+        @media (max-width: 767.98px) {
+            .table-responsive {
+                border: 0;
+            }
+
+            .table thead {
+                display: none;
+            }
+
+            .table tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .table td {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.75rem;
+                text-align: left;
+                border: 0;
+                border-bottom: 1px solid #ddd;
+            }
+
+                .table td:last-child {
+                    border-bottom: 0;
+                }
+
+                .table td::before {
+                    content: attr(data-label);
+                    font-weight: bold;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    color: #6c757d;
+                }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">WellnessWave</a>
+            {% include 'navbar.html' %}
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="text-center">Сеансы Клиентов</h1>
+
+        <!-- Форма фильтрации -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <form method="get" action="{{ url_for('client_sessions') }}">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="client_id" class="form-label">Клиент</label>
+                            <select class="form-select" id="client_id" name="client_id">
+                                <option value="">Все</option>
+                                {% for client in clients %}
+                                <option value="{{ client.id }}" {% if client_id==client.id|string %}selected{% endif %}>
+                                    {{ client.name_client }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="master_id" class="form-label">Мастер</label>
+                            <select class="form-select" id="master_id" name="master_id">
+                                <option value="">Все</option>
+                                {% for master in masters %}
+                                <option value="{{ master.master_id }}" {% if master_id==master.master_id|string %}selected{% endif %}>
+                                    {{ master.name_master }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="address" class="form-label">Адрес</label>
+                            <input type="text" class="form-control" id="address" name="address" value="{{ address }}" placeholder="Поиск по адресу">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Фильтровать</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>
+                            <a href="{{ url_for('client_sessions', sort_by='name_client', order=next_order, client_id=client_id, master_id=master_id, address=address) }}">
+                                Клиент
+                                {% if sort_by == 'name_client' %}
+                                <i class="fas fa-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ url_for('client_sessions', sort_by='name_master', order=next_order, client_id=client_id, master_id=master_id, address=address) }}">
+                                Мастер
+                                {% if sort_by == 'name_master' %}
+                                <i class="fas fa-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>Количество сеансов</th>
+                        <th>Детали</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client_id, client_info in clients_sessions.items() %}
+                    <tr id="session_row_{{ client_info.sessions[0].id }}">
+                        <td>{{ client_id }}</td>
+                        <td>{{ client_info.name_client }}</td>
+                        <td>{{ client_info.master_name }}</td>
+                        <td>{{ client_info.sessions_count }}</td>
+                        <td>
+                            <button class="btn btn-info btn-sm" data-bs-toggle="collapse" data-bs-target="#details_{{ client_id }}">
+                                Показать детали
+                            </button>
+                        </td>
+                    </tr>
+                    <tr id="details_row_{{ client_info.sessions[0].id }}">
+                        <td colspan="5">
+                            <div id="details_{{ client_id }}" class="collapse">
+                                <div class="card card-body">
+                                    <ul class="nav nav-tabs" id="myTab_{{ client_id }}" role="tablist">
+                                        {% for session in client_info.sessions %}
+                                        <li class="nav-item" role="presentation">
+                                            <a class="nav-link {% if loop.index == 1 %}active{% endif %}" id="session-tab-{{ session.id }}" data-bs-toggle="tab" href="#session_{{ session.id }}" role="tab" aria-controls="session_{{ session.id }}" aria-selected="true">
+                                                Сеанс {{ loop.index }}
+                                            </a>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    <div class="tab-content mt-3" id="myTabContent_{{ client_id }}">
+                                        {% for session in client_info.sessions %}
+                                        <div class="tab-pane fade {% if loop.index == 1 %}show active{% endif %}" id="session_{{ session.id }}" role="tabpanel" aria-labelledby="session-tab-{{ session.id }}">
+                                            <strong>Дата:</strong> {{ session.date }} <br>
+                                            <strong>Мастер:</strong> {{ session.name_master }} <br>
+                                            <strong>Адрес:</strong> {{ session.address }} <br>
+                                            <strong>Тип процедуры:</strong> {{ session.procedure_type }} <br>
+                                            <strong>Статус оплаты:</strong> {{ session.payment_status }} <br>
+                                            <strong>Детали:</strong> {{ session.details }} <br>
+                                            <button class="btn btn-danger btn-sm mt-2" onclick="deleteSession({{ session.id }})">Удалить сеанс (безвозвратно)</button>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function deleteSession(sessionId) {
+            if (confirm("Вы уверены, что хотите удалить этот сеанс? Это действие необратимо.")) {
+                fetch(`/delete_client_session/${sessionId}`, {
+                    method: 'DELETE'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert("Сеанс успешно удален.");
+                            document.getElementById(`session_row_${sessionId}`).remove(); // Удаление строки с сеансом
+                            document.getElementById(`details_row_${sessionId}`).remove(); // Удаление строки с деталями
+                        } else {
+                            alert("Ошибка: " + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Ошибка:", error);
+                        alert("Произошла ошибка при удалении сеанса.");
+                    });
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

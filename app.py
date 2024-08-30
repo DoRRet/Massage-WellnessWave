@@ -1,4 +1,4 @@
-﻿from flask import Flask, render_template, redirect, url_for, request, session, flash
+﻿from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -18,6 +18,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey
 
 from flask import g, session, render_template
+
+
 
 example_date = datetime.now()
 formatted_date = format_datetime(example_date, "d MMMM yyyy", locale='ru')
@@ -71,6 +73,7 @@ class Sessions(db.Model):
     telegram_chat_id = db.Column(db.String, nullable=True)
     address = db.Column(db.String, nullable=False)
     notification_status = db.Column(db.String, nullable=True)  # Добавьте это поле
+    is_deleted = db.Column(db.Boolean, default=False)
 
 class Addresses(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -407,19 +410,28 @@ def manage_sessions():
         return redirect(url_for('login'))
 
     master_id = request.args.get('master_id', '')
+    client_id = request.args.get('client_id', '')
+    address_id = request.args.get('address_id', '')
     sort_by = request.args.get('sort_by', 'date')
     order = request.args.get('order', 'asc')
 
     if g.user_role == 'admin':
-        sessions_query = db.session.query(Sessions).join(Addresses)
+        sessions_query = db.session.query(Sessions).join(Addresses, Sessions.address_id == Addresses.id).filter(Sessions.is_deleted == False)
         masters = db.session.query(User.master_id, User.name_master).distinct()
+        clients = db.session.query(Sessions.client_id, Sessions.name_client).distinct()
+        addresses = db.session.query(Addresses.id, Addresses.address).distinct()
     else:
-        sessions_query = db.session.query(Sessions).filter(Sessions.master_id == g.current_user.master_id).join(Addresses)
+        sessions_query = db.session.query(Sessions).filter(Sessions.master_id == g.current_user.master_id, Sessions.is_deleted == False).join(Addresses, Sessions.address_id == Addresses.id)
         masters = db.session.query(User.master_id, User.name_master).filter(User.master_id == g.current_user.master_id).distinct()
+        clients = db.session.query(Sessions.client_id, Sessions.name_client).distinct()
+        addresses = db.session.query(Addresses.id, Addresses.address).distinct()
 
     if master_id:
-        sessions_query = sessions_query.filter(Sessions.master_id == g.current_user.master_id)
-
+        sessions_query = sessions_query.filter(Sessions.master_id == master_id)
+    if client_id:
+        sessions_query = sessions_query.filter(Sessions.client_id == client_id)
+    if address_id:
+        sessions_query = sessions_query.filter(Sessions.address_id == address_id)  # Обратите внимание на эту строку
 
     if sort_by == 'name_master':
         sessions_query = sessions_query.order_by(Sessions.name_master.asc() if order == 'asc' else Sessions.name_master.desc())
@@ -448,7 +460,9 @@ def manage_sessions():
 
     next_order = 'desc' if order == 'asc' else 'asc'
 
-    return render_template('sessions.html', sessions=formatted_sessions, sort_by=sort_by, order=order, next_order=next_order, role=g.user_role, masters=masters, selected_master_id=master_id)
+    return render_template('sessions.html', sessions=formatted_sessions, sort_by=sort_by, order=order, next_order=next_order, role=g.user_role, masters=masters, clients=clients, addresses=addresses, selected_master_id=master_id, selected_client_id=client_id, selected_address_id=address_id)
+
+
 
 
 
@@ -671,10 +685,105 @@ def delete_session(session_id):
         return redirect(url_for('login'))
 
     session_record = Sessions.query.get_or_404(session_id)
-    db.session.delete(session_record)
+    session_record.is_deleted = True
     db.session.commit()
     flash('Сеанс успешно удален!', 'success')
     return redirect(url_for('manage_sessions'))
+
+
+@app.route('/client_sessions')
+def client_sessions():
+    if g.current_user is None:
+        return redirect(url_for('login'))
+
+    # Получение параметров сортировки и фильтрации из запроса
+    sort_by = request.args.get('sort_by', 'date')
+    order = request.args.get('order', 'asc')
+    client_id = request.args.get('client_id', '')
+    master_id = request.args.get('master_id', '')
+    address = request.args.get('address', '')
+
+    # Начальная база запроса
+    sessions_query = db.session.query(Sessions).join(Client).join(User).filter(Sessions.is_deleted == False)
+
+    # Применение фильтров
+    if client_id:
+        sessions_query = sessions_query.filter(Client.id == client_id)
+    if master_id:
+        sessions_query = sessions_query.filter(User.master_id == master_id)
+    if address:
+        sessions_query = sessions_query.filter(Sessions.address.ilike(f'%{address}%'))
+
+    # Применение сортировки
+    if sort_by == 'name_client':
+        sessions_query = sessions_query.order_by(Client.name_client.asc() if order == 'asc' else Client.name_client.desc())
+    elif sort_by == 'name_master':
+        sessions_query = sessions_query.order_by(User.name_master.asc() if order == 'asc' else User.name_master.desc())
+    elif sort_by == 'date':
+        sessions_query = sessions_query.order_by(Sessions.date.asc() if order == 'asc' else Sessions.date.desc())
+
+    # Получение всех сеансов по запросу
+    sessions_list = sessions_query.all()
+
+    # Формирование данных для отображения
+    client_sessions_map = {}
+    for session in sessions_list:
+        client_id = session.client_id
+        if client_id not in client_sessions_map:
+            client_sessions_map[client_id] = {
+                'name_client': session.client.name_client,
+                'master_name': session.master.name_master,
+                'sessions_count': 0,
+                'sessions': []
+            }
+        client_sessions_map[client_id]['sessions'].append({
+            'id': session.id,
+            'name_master': session.master.name_master,
+            'address': session.address,
+            'procedure_type': session.procedure_type,
+            'date': format_datetime(session.date, "d MMMM yyyy HH:mm", locale='ru'),
+            'payment_status': session.payment_status,
+            'details': session.details
+        })
+        client_sessions_map[client_id]['sessions_count'] += 1
+
+    # Список клиентов и мастеров для фильтрации
+    clients = db.session.query(Client).all()
+    masters = db.session.query(User).all()
+
+    # Определение следующего порядка сортировки
+    next_order = 'desc' if order == 'asc' else 'asc'
+
+    return render_template('client_sessions.html',
+                           clients_sessions=client_sessions_map,
+                           sort_by=sort_by,
+                           order=order,
+                           next_order=next_order,
+                           clients=clients,
+                           masters=masters,
+                           client_id=client_id,
+                           master_id=master_id,
+                           address=address)
+
+
+
+@app.route('/delete_client_session/<int:session_id>', methods=['DELETE'])
+def delete_client_session(session_id):
+    if g.current_user is None:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    # Поиск сеанса по ID
+    session_to_delete = db.session.query(Sessions).filter_by(id=session_id).first()
+
+    if session_to_delete is None:
+        return jsonify({'error': 'Session not found'}), 404
+
+    # Удаление сеанса из базы данных
+    db.session.delete(session_to_delete)
+    db.session.commit()
+
+    return jsonify({'success': 'Session deleted successfully'}), 200
+
 
 
 

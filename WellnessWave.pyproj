@@ -47,6 +47,7 @@
     <Content Include="templates\add_user.html" />
     <Content Include="templates\calendar.html" />
     <Content Include="templates\clients.html" />
+    <Content Include="templates\client_sessions.html" />
     <Content Include="templates\dashboard.html" />
     <Content Include="templates\edit_address.html" />
     <Content Include="templates\edit_client.html" />
